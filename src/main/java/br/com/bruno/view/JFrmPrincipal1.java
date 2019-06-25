@@ -48,7 +48,7 @@ import br.com.bruno.utils.Actions;
  *
  * @author bruno
  */
-public class JFrmPrincipal extends javax.swing.JFrame {
+public class JFrmPrincipal1 extends javax.swing.JFrame {
 
     private Actions a;
     private TituloTableModel tableModel;
@@ -61,7 +61,7 @@ public class JFrmPrincipal extends javax.swing.JFrame {
     /**
      * Creates new form JfrmPrincipal
      */
-    public JFrmPrincipal() {
+    public JFrmPrincipal1() {
         initComponents();
         a = new Actions(this);
         titulosFiscais = new ArrayList<TituloNotaFiscal>();
@@ -440,17 +440,17 @@ public class JFrmPrincipal extends javax.swing.JFrame {
         try {
             Double entrada = 0.0;
             Double saida = 0.0;
-            List<TituloNotaFiscal> result = new ArrayList<>();
             JFileChooser chooser = new JFileChooser();
             chooser.setMultiSelectionEnabled(true);
             int resp = chooser.showOpenDialog(this);
+            tituloNotaFiscal = null;
+            titulosFiscais = new ArrayList<>();
+            tituloEmpresa = null;
+            contribuintes = new ArrayList<>();
+            produtos = new ArrayList<>();
+            int o = 1;
             if (resp == JFileChooser.APPROVE_OPTION) {
-                tituloEmpresa = null;
-                contribuintes = new ArrayList<>();
-                produtos = new ArrayList<>();
-                titulosFiscais = new ArrayList<>();
-                tituloNotaFiscal = null;
-                int o = 1;
+
                 for (File f : chooser.getSelectedFiles()) {
                     String extensao = Utils.getExtensaoByFileName(f.getName());
                     if (!extensao.equalsIgnoreCase("TXT")) {
@@ -470,17 +470,9 @@ public class JFrmPrincipal extends javax.swing.JFrame {
                             } else if (linha.substring(1, 5).equals("0200")) {
                                 carregarProdutos(linha);
                             } else if (linha.substring(1, 5).equals("C100")) {
-//                                if (tituloNotaFiscal != null) {
-//                                    if (titulosFiscais.isEmpty()) {
-//                                        titulosFiscais.add(tituloNotaFiscal);
-//                                    }
-//                                } else {
-//                                    tituloNotaFiscal = new TituloNotaFiscal();
-//                                    tituloNotaFiscal = carregarTituloNotaFiscal(linha);
-//                                }
+
                                 if (o == 1) {
                                     tituloNotaFiscal = carregarTituloNotaFiscal(linha);
-                                    titulosFiscais.add(tituloNotaFiscal);
                                 }
                                 o++;
                             } else if (linha.substring(1, 5).equals("C170")) {
@@ -489,36 +481,27 @@ public class JFrmPrincipal extends javax.swing.JFrame {
                         }
                     }
                     buffRead.close();
-                    result.add(titulosFiscais.get(0));
-                    for (ItemNotaFiscal item : titulosFiscais.get(0).getItensNotaFiscal()) {
 
-//                            if (item.getTipoOperacao().equals("0")) {
-//                                entrada += item.getValorDoc();
-//                            } else {
-//                                saida += item.getValorDoc();
-//                            }
-                        entrada += item.getValorItem();
-
-                    }
                 }
-                if (!result.isEmpty()) {
 
-//                    Collections.sort(result, new Comparator<TituloNotaFiscal>() {
-//                        @Override
-//                        public int compare(TituloNotaFiscal o1, TituloNotaFiscal o2) {
-////                            System.out.println("o1 = " + o1.getDtEntradaSaida() + " O2 =" + o2.getDtEntradaSaida());
-//                            return o1.getDtEntradaSaida().compareTo(o2.getDtEntradaSaida());
-//                        }
-//                    });
-                    tableModel.setItems(result);
-                    jLblEntrada.setText(new DecimalFormat("#,##0.00").format(Utils.arredondamento(entrada)));
-                    jLblSaida.setText(new DecimalFormat("#,##0.00").format(Utils.arredondamento(saida)));
-                    jLblNotas.setText(new DecimalFormat("#,##0.00").format(Utils.arredondamento(entrada - saida)));
-                    JOptionPane.showMessageDialog(this, "Arquivo(s) importado(s) com sucesso!!");
-                    jTable1.requestFocus();
-                }
             } else {
                 throw new Exception("Operação cancelada pelo usuário!!");
+            }
+
+            if (tituloNotaFiscal != null) {
+
+                for (ItemNotaFiscal item : tituloNotaFiscal.getItensNotaFiscal()) {
+
+                    entrada += item.getValorItem();
+
+                }
+                titulosFiscais.add(tituloNotaFiscal);
+                tableModel.setItems(titulosFiscais);
+                jLblEntrada.setText(new DecimalFormat("#,##0.00").format(Utils.arredondamento(entrada)));
+                jLblSaida.setText(new DecimalFormat("#,##0.00").format(Utils.arredondamento(saida)));
+                jLblNotas.setText(new DecimalFormat("#,##0.00").format(Utils.arredondamento(entrada - saida)));
+                JOptionPane.showMessageDialog(this, "Arquivo(s) importado(s) com sucesso!!");
+                jTable1.requestFocus();
             }
 
         } catch (Exception e) {
@@ -565,8 +548,9 @@ public class JFrmPrincipal extends javax.swing.JFrame {
 
     private void JBtnImportar1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_JBtnImportar1ActionPerformed
         try {
+            //848.692
             if (!tableModel.getResultList().isEmpty()) {
-                Double valorFant = Double.parseDouble(JOptionPane.showInputDialog("Qual a porcentagem fantasiosa?"));
+                Double valorFant = Double.parseDouble(JOptionPane.showInputDialog("Informe o Valor Estimado :"));
                 JFileChooser chooser = new JFileChooser();
                 chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 int i = chooser.showSaveDialog(this);
@@ -608,10 +592,6 @@ public class JFrmPrincipal extends javax.swing.JFrame {
                     rowEmpresa.createCell(1).setCellValue(Utils.formataStringCNPJ(tituloEmpresa.getCnpj()) + " / " + tituloEmpresa.getNmEmpresa().toUpperCase());
                     rowEmpresa.getCell(1).setCellStyle(txtStyle2);
 
-//                    //******************* titulo ************************
-//                    HSSFRow rowTitulo = sheet.createRow((short) i++);
-//                    rowTitulo.createCell(2).setCellValue("           Invent�rio Fiscal        ");
-//                    rowTitulo.getCell(2).setCellStyle(txtStyle1);
                     //***************************************************
                     Double acumuladorTotalEntrada = 0.0;
                     Double acumuladorTotalSaida = 0.0;
@@ -621,22 +601,16 @@ public class JFrmPrincipal extends javax.swing.JFrame {
                     for (ListasPaginadas page : result) {
                         Double acumuladorEntradaMensal = 0.0;
                         Double acumuladorSaidaMensal = 0.0;
-//                        HSSFRow rowHeader1 = sheet.createRow((short) i++);
-//                        rowHeader1.createCell(0).setCellValue(Utils.descricaoMes(page.getMes()));
-//                        rowHeader1.getCell(0).setCellStyle(txtStyle2);
                         if (cont == 1) {
                             HSSFRow rowHeader2 = sheet.createRow((short) i++);
-//                            rowHeader2.createCell(0).setCellValue("N� Item");
                             rowHeader2.createCell(0).setCellValue("Cód Item");
-//                            rowHeader2.createCell(2).setCellValue("CFOP");
-//                            rowHeader2.createCell(3).setCellValue("NCM");
                             rowHeader2.createCell(1).setCellValue("Produto");
                             rowHeader2.createCell(2).setCellValue("Unidade");
-//                            rowHeader2.createCell(6).setCellValue("Quantidade");
                             rowHeader2.createCell(3).setCellValue("Valor Unitario(R$)");
                             rowHeader2.createCell(4).setCellValue("Local");
                             rowHeader2.createCell(5).setCellValue("Quantidade");
                             rowHeader2.createCell(6).setCellValue("Conta Contabil");
+                            rowHeader2.createCell(7).setCellValue("Total(R$)");
                             rowHeader2.getCell(0).setCellStyle(txtStyle3);
                             rowHeader2.getCell(1).setCellStyle(txtStyle3);
                             rowHeader2.getCell(2).setCellStyle(txtStyle3);
@@ -644,83 +618,47 @@ public class JFrmPrincipal extends javax.swing.JFrame {
                             rowHeader2.getCell(4).setCellStyle(txtStyle3);
                             rowHeader2.getCell(5).setCellStyle(txtStyle3);
                             rowHeader2.getCell(6).setCellStyle(txtStyle3);
-//                            rowHeader2.getCell(7).setCellStyle(txtStyle3);
-//                            rowHeader2.getCell(8).setCellStyle(txtStyle3);
+                            rowHeader2.getCell(7).setCellStyle(txtStyle3);
                         }
+                        Integer codbarraCont = 1;
                         for (TituloNotaFiscal nota : page.getNotas()) {
-                            if (nota.getTipoOperacao().equals("0") && nota.getDtEntradaSaida() != null) {
-                                for (ItemNotaFiscal item : nota.getItensNotaFiscal()) {
-                                    if (!item.getProduto().getNmProduto().contains("MOTOR SEMICOMPLETO")) {
-                                        Double qtd = (item.getQuantidade() - (item.getQuantidade() * (30 / 100)));
-                                        Double vlItem = (item.getValorItem() - (item.getValorItem() * valorFant / 100));
-                                        Double vlUnit = (vlItem / item.getQuantidade());
+                            for (ItemNotaFiscal item : nota.getItensNotaFiscal()) {
+                                if (!item.getProduto().getNmProduto().contains("MOTOR SEMICOMPLETO")) {
+                                    Integer qtd = ((Double) (item.getQuantidade() + (item.getQuantidade() * (valorFant / 100)))).intValue();
 
-                                        HSSFRow rowHeader3 = sheet.createRow((short) i++);
-//                                    rowHeader3.createCell(0).setCellValue(item.getNumItem());
-                                        rowHeader3.createCell(0).setCellValue(item.getProduto().getCodItem());
-//                                    rowHeader3.createCell(1).setCellValue(item.getCfop());
-//                                    rowHeader3.createCell(2).setCellValue(item.getProduto().getNcm());
-                                        rowHeader3.createCell(1).setCellValue(item.getProduto().getNmProduto());
-                                        rowHeader3.createCell(2).setCellValue(item.getUnidade());
-//                                    rowHeader3.createCell(5).setCellValue(Formata.format(item.getQuantidade()));
-                                        rowHeader3.createCell(3).setCellValue(Formata.format(Utils.arredondamento(vlUnit)));
-                                        rowHeader3.createCell(4).setCellValue("1");
-                                        rowHeader3.createCell(5).setCellValue(item.getQuantidade());
-                                        rowHeader3.createCell(6).setCellValue("56");
-//                                    rowHeader3.createCell(8).setCellValue(Formata.format(item.getValorItem()));
-                                        acumuladorEntradaMensal = acumuladorEntradaMensal + vlItem;
-                                    }
+                                    Double valorUnit = item.getValorItem() / item.getQuantidade();
+                                    Double valorItem = valorUnit * qtd;
+
+                                    HSSFRow rowHeader3 = sheet.createRow((short) i++);
+                                    rowHeader3.createCell(0).setCellValue(codbarraCont.toString());
+                                    rowHeader3.createCell(1).setCellValue(item.getProduto().getNmProduto());
+                                    rowHeader3.createCell(2).setCellValue(item.getUnidade());
+                                    rowHeader3.createCell(3).setCellValue(Formata.format(Utils.arredondamento(valorUnit)));
+                                    rowHeader3.createCell(4).setCellValue("1");
+                                    rowHeader3.createCell(5).setCellValue(qtd);
+                                    rowHeader3.createCell(6).setCellValue("56");
+                                    rowHeader3.createCell(7).setCellValue(Formata.format(Utils.arredondamento(valorItem)));
+                                    acumuladorEntradaMensal = acumuladorEntradaMensal + valorItem;
+
+                                    codbarraCont++;
                                 }
-                            } else {
-                                acumuladorSaidaMensal = acumuladorSaidaMensal + nota.getValorDoc();
                             }
+
                         }
 
-//                        HSSFRow rowHeader4 = sheet.createRow((short) i++);
-//                        rowHeader4.createCell(7).setCellValue("Total Entrada(s) M�s (R$):");
-//                        rowHeader4.createCell(8).setCellValue(Formata.format(Utils.arredondamento(acumuladorEntradaMensal)));
-//                        rowHeader4.getCell(7).setCellStyle(txtStyle3);
-//                        rowHeader4.getCell(8).setCellStyle(txtStyle3);
-//
-//                        HSSFRow rowHeader5 = sheet.createRow((short) i++);
-//                        rowHeader5.createCell(7).setCellValue("Total Sa�da(s) M�s (R$):");
-//                        rowHeader5.createCell(8).setCellValue(Formata.format(Utils.arredondamento(acumuladorSaidaMensal)));
-//                        rowHeader5.getCell(7).setCellStyle(txtStyle3);
-//                        rowHeader5.getCell(8).setCellStyle(txtStyle3);
-//
-//                        HSSFRow rowHeader6 = sheet.createRow((short) i++);
-//                        rowHeader6.createCell(7).setCellValue(" -------------------- ");
-//                        rowHeader6.getCell(7).setCellStyle(txtStyle3);
-//
-//                        HSSFRow rowHeader7 = sheet.createRow((short) i++);
-//                        rowHeader7.createCell(7).setCellValue("Total M�s (R$):");
-//                        rowHeader7.createCell(8).setCellValue(Formata.format(Utils.arredondamento(acumuladorEntradaMensal - acumuladorSaidaMensal)));
-//                        rowHeader7.getCell(7).setCellStyle(txtStyle3);
-//                        rowHeader7.getCell(8).setCellStyle(txtStyle3);
-                        acumuladorTotalEntrada = acumuladorTotalEntrada + acumuladorEntradaMensal;
-                        acumuladorTotalSaida = acumuladorTotalSaida + acumuladorSaidaMensal;
-
+//                        acumuladorTotalEntrada = acumuladorTotalEntrada + acumuladorEntradaMensal;
+//                        acumuladorTotalSaida = acumuladorTotalSaida + acumuladorSaidaMensal;
                         if (cont == result.size()) {
                             HSSFRow rowHeader8 = sheet.createRow((short) i++);
-                            rowHeader8.createCell(5).setCellValue(" -------------------- ");
-                            rowHeader8.getCell(5).setCellStyle(txtStyle3);
+                            rowHeader8.createCell(7).setCellValue(" -------------------- ");
+                            rowHeader8.getCell(7).setCellStyle(txtStyle3);
                             HSSFRow rowHeader9 = sheet.createRow((short) i++);
-                            rowHeader9.createCell(4).setCellValue("Total Geral Entrada(s)(R$):");
-                            rowHeader9.createCell(5).setCellValue(Formata.format(Utils.arredondamento(acumuladorTotalEntrada)));
-                            rowHeader9.getCell(4).setCellStyle(txtStyle3);
-                            rowHeader9.getCell(5).setCellStyle(txtStyle3);
-                            HSSFRow rowHeader10 = sheet.createRow((short) i++);
-                            rowHeader10.createCell(4).setCellValue("Total Geral Saída(s)(R$):");
-                            rowHeader10.createCell(5).setCellValue(Formata.format(Utils.arredondamento(acumuladorTotalSaida)));
-                            rowHeader10.getCell(4).setCellStyle(txtStyle3);
-                            rowHeader10.getCell(5).setCellStyle(txtStyle3);
-                            HSSFRow rowHeader11 = sheet.createRow((short) i++);
-                            rowHeader11.createCell(4).setCellValue("Total Geral (R$):");
-                            rowHeader11.createCell(5).setCellValue(Formata.format(Utils.arredondamento(acumuladorTotalEntrada - acumuladorTotalSaida)));
-                            rowHeader11.getCell(4).setCellStyle(txtStyle3);
-                            rowHeader11.getCell(5).setCellStyle(txtStyle3);
+                            rowHeader9.createCell(6).setCellValue("Total Geral (R$):");
+                            rowHeader9.createCell(7).setCellValue(Formata.format(acumuladorEntradaMensal));
+                            rowHeader9.getCell(6).setCellStyle(txtStyle3);
+                            rowHeader9.getCell(7).setCellStyle(txtStyle3);
+                            System.out.println("VALOR ENTRADA = " + Utils.arredondamento(acumuladorEntradaMensal));
                             break;
-
                         }
                         cont++;
                     }
@@ -1194,7 +1132,8 @@ public class JFrmPrincipal extends javax.swing.JFrame {
                     break;
                 }
                 case 7: {
-                    inf.setValorItem(obj2 != null && !obj2.isEmpty() ? Double.parseDouble(obj2.replace(",", ".")) : 0.0);
+                    Double valor = obj2 != null && !obj2.isEmpty() ? Double.parseDouble(obj2.replace(",", ".")) : 0.0;
+                    inf.setValorItem(valor);
                     break;
                 }
                 case 8: {
@@ -1346,89 +1285,26 @@ public class JFrmPrincipal extends javax.swing.JFrame {
 
     /**
      * se o item encontra-se na listagem, ser atualizado seus atributos para
-     * somar com os novos. caso contrario add in List;
+     * somar com os novos. caso contrario add in List; 7891000140307
      *
      * @param inf2
      */
     public static void updateItemList(ItemNotaFiscal inf2) {
         if (inf2 != null && inf2.getProduto() != null) {
-            itemList = null;
-            c = 0;
-            getFindCodList(inf2.getProduto(), tituloNotaFiscal.getItensNotaFiscal());
-            System.out.println("Produtos = " + inf2.getProduto().getNmProduto());
-            if (itemList != null && itemList.getIndex() != null) {
-                System.out.println("Index = " + itemList.getIndex() + "Produto = " + itemList.getItemNotaFiscal().getProduto().getCodBarra() + " - " + itemList.getItemNotaFiscal().getProduto().getNmProduto());
-                ItemNotaFiscal inf = itemList.getItemNotaFiscal();
-                inf.setQuantidade((inf.getQuantidade() + (inf2.getQuantidade() != null ? inf2.getQuantidade() : 0.0)));
+            boolean isExist = false;
+            for (ItemNotaFiscal item : tituloNotaFiscal.getItensNotaFiscal()) {
+                if (item.getProduto().getNmProduto().trim().equalsIgnoreCase(inf2.getProduto().getNmProduto().trim()) && item.getProduto().getUnidade().trim().equalsIgnoreCase(inf2.getProduto().getUnidade().trim())) {
+                    System.out.println("Produto Repetido = " + item.getProduto().getCodBarra() + " - " + item.getProduto().getNmProduto());
+                    Double quantidade = item.getQuantidade() + (inf2.getQuantidade() != null ? inf2.getQuantidade() : 0.0);
+                    item.setQuantidade(Utils.arredondamento(quantidade));
+                    item.setValorItem((item.getValorItem() + (inf2.getValorItem() != null ? inf2.getValorItem() : 0.0)));
+                    isExist = true;
+                    break;
+                }
+            }
 
-                inf.setUnidade(inf2.getUnidade());
-
-                inf.setValorItem((inf.getValorItem() + (inf2.getValorItem() != null ? inf2.getValorItem() : 0.0)));
-
-                inf.setValorDesc((inf.getValorDesc() + (inf2.getValorDesc() != null ? inf2.getValorDesc() : 0.0)));
-
-                inf.setTipoMvimentacao(inf2.getTipoMvimentacao());
-
-                inf.setCstICMS(inf2.getCstICMS() != null ? inf2.getCstICMS() : 0.0);
-
-                inf.setCfop(inf2.getCfop());
-
-                inf.setCodNaturezaOper(inf2.getCodNaturezaOper());
-
-                inf.setValorBaseCalculoICMS((inf.getValorBaseCalculoICMS() + (inf2.getValorBaseCalculoICMS() != null ? inf2.getValorBaseCalculoICMS() : 0.0)));
-
-                inf.setAliquotaICMS((inf.getAliquotaICMS() + (inf2.getAliquotaICMS() != null ? inf2.getAliquotaICMS() : 0.0)));
-
-                inf.setValorICMS((inf.getValorICMS() + (inf2.getValorICMS() != null ? inf2.getValorICMS() : 0.0)));
-
-                inf.setValorBaseCalculoIcmsST((inf.getValorBaseCalculoIcmsST() + (inf2.getValorBaseCalculoIcmsST() != null ? inf2.getValorBaseCalculoIcmsST() : 0.0)));
-
-                inf.setAliquotaST((inf.getAliquotaST() + (inf2.getAliquotaST() != null ? inf2.getAliquotaST() : 0.0)));
-
-                inf.setValorIcmsST((inf.getValorIcmsST() + (inf2.getValorIcmsST() != null ? inf2.getValorIcmsST() : 0.0)));
-
-                inf.setTipoApuracao(inf2.getTipoApuracao());
-
-                inf.setCstIPI(inf2.getCstIPI());
-
-                inf.setCodEquadramentoIPI(inf2.getCodEquadramentoIPI());
-
-                inf.setValorBaseCalculoIPI((inf.getValorBaseCalculoIPI() + (inf2.getValorBaseCalculoIPI() != null ? inf2.getValorBaseCalculoIPI() : 0.0)));
-
-                inf.setAliquotaIPI((inf.getAliquotaIPI() + (inf2.getAliquotaIPI() != null ? inf2.getAliquotaIPI() : 0.0)));
-
-                inf.setValorIPI((inf.getValorIPI() + (inf2.getValorIPI() != null ? inf2.getValorIPI() : 0.0)));
-
-                inf.setCstPIS((inf.getCstPIS() + (inf2.getCstPIS() != null ? inf2.getCstPIS() : 0.0)));
-
-                inf.setValorBaseCalculoPIS((inf.getValorBaseCalculoPIS() + (inf2.getValorBaseCalculoPIS() != null ? inf2.getValorBaseCalculoPIS() : 0.0)));
-
-                inf.setAliquotaPercentPIS((inf.getAliquotaPercentPIS() + (inf2.getAliquotaPercentPIS() != null ? inf2.getAliquotaPercentPIS() : 0.0)));
-
-                inf.setQuantidadeBaseCalculoPIS((inf.getQuantidadeBaseCalculoPIS() + (inf2.getQuantidadeBaseCalculoPIS() != null ? inf2.getQuantidadeBaseCalculoPIS() : 0.0)));
-
-                inf.setAliquotaValorPIS((inf.getAliquotaValorPIS() + (inf2.getAliquotaValorPIS() != null ? inf2.getAliquotaValorPIS() : 0.0)));
-
-                inf.setValorPIS((inf.getValorPIS() + (inf2.getValorPIS() != null ? inf2.getValorPIS() : 0.0)));
-
-                inf.setCstCOFINS((inf.getCstCOFINS() + (inf2.getCstCOFINS() != null ? inf2.getCstCOFINS() : 0.0)));
-
-                inf.setValorBaseCalculoCOFINS((inf.getValorBaseCalculoCOFINS() + (inf2.getValorBaseCalculoCOFINS() != null ? inf2.getValorBaseCalculoCOFINS() : 0.0)));
-
-                inf.setAliquotaPercentCOFINS((inf.getAliquotaPercentCOFINS() + (inf2.getAliquotaPercentCOFINS() != null ? inf2.getAliquotaPercentCOFINS() : 0.0)));
-
-                inf.setQuantidadeBaseCalculoCOFINS((inf.getQuantidadeBaseCalculoCOFINS() + (inf2.getQuantidadeBaseCalculoCOFINS() != null ? inf2.getQuantidadeBaseCalculoCOFINS() : 0.0)));
-
-                inf.setAliquotaValorCOFINS((inf.getAliquotaValorCOFINS() + (inf2.getAliquotaValorCOFINS() != null ? inf2.getAliquotaValorCOFINS() : 0.0)));
-
-                inf.setValorCOFINS((inf.getValorCOFINS() + (inf2.getValorCOFINS() != null ? inf2.getValorCOFINS() : 0.0)));
-
-                tituloNotaFiscal.getItensNotaFiscal().set(itemList.getIndex(), inf);
-
-            } else {
-
+            if (!isExist) {
                 tituloNotaFiscal.getItensNotaFiscal().add(inf2);
-
             }
         }
     }
@@ -1445,20 +1321,21 @@ public class JFrmPrincipal extends javax.swing.JFrame {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(JFrmPrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(JFrmPrincipal1.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(JFrmPrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(JFrmPrincipal1.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(JFrmPrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(JFrmPrincipal1.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(JFrmPrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(JFrmPrincipal1.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new JFrmPrincipal().setVisible(true);
+                new JFrmPrincipal1().setVisible(true);
             }
         });
     }

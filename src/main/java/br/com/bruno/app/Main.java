@@ -2,6 +2,7 @@ package br.com.bruno.app;
 
 import br.com.bruno.utils.AppLock;
 import br.com.bruno.view.JFrmPrincipal;
+import br.com.bruno.view.JFrmPrincipal1;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,7 +29,7 @@ public class Main {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            JFrmPrincipal login = new JFrmPrincipal();
+            JFrmPrincipal1 login = new JFrmPrincipal1();
             login.setVisible(true);
 
         } else {
